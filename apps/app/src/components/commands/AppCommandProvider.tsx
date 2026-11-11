@@ -53,6 +53,7 @@ interface AppCommandProviderValue {
     commands: readonly KeyboardCommandId[],
   ) => KeyboardCommandId | null;
   handleKeyboardEvent: (event: KeyboardEvent) => boolean;
+  keybindingsLoaded: boolean;
   isCommandAvailable: (
     command: KeyboardCommandId,
     target: EventTarget | null,
@@ -108,6 +109,7 @@ export function AppCommandProvider({ children }: { children: ReactNode }) {
   const showKeyboardHints =
     systemConfig.data?.generalSettings?.showKeyboardHints ??
     defaultAppSettings.showKeyboardHints;
+  const keybindingsLoaded = systemConfig.data !== undefined;
   const isDesktop = getBbDesktopInfo() !== null;
   const [isShortcutHintModifierHeld, setIsShortcutHintModifierHeld] =
     useState(false);
@@ -418,6 +420,7 @@ export function AppCommandProvider({ children }: { children: ReactNode }) {
       getShortcut,
       getShortcutCommand,
       handleKeyboardEvent,
+      keybindingsLoaded,
       isCommandAvailable,
       registerContext,
       registerHandler,
@@ -427,6 +430,7 @@ export function AppCommandProvider({ children }: { children: ReactNode }) {
       getShortcut,
       getShortcutCommand,
       handleKeyboardEvent,
+      keybindingsLoaded,
       isCommandAvailable,
       registerContext,
       registerHandler,
@@ -549,6 +553,16 @@ export function useAppCommandShortcut(
     if (!shortcut) return null;
     return presentAppShortcut(shortcut, browserPlatform());
   }, [command, value]);
+}
+
+export function useEffectiveAppShortcut(
+  command: KeyboardCommandId,
+  defaultShortcut: AppShortcut,
+): AppShortcut | null {
+  const value = useContext(AppCommandContextValue);
+  return value?.keybindingsLoaded === true
+    ? value.getShortcut(command)
+    : defaultShortcut;
 }
 
 export function useIsAppCommandModifierHeld(): boolean {

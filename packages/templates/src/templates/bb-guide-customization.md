@@ -97,7 +97,8 @@ General. Machine-related keys (`machineServerUrl`, `defaultMachineAccess`,
 - `steerActiveThreadOnEnter` (default true for a new install; an earlier
   install with saved settings or work keeps false): when on, Enter steers a
   running thread and Command+Enter queues a follow-up; when off, those are
-  reversed. Shift+Enter inserts a newline.
+  reversed. Shift+Enter inserts a newline. Rebind Command+Enter with
+  `bb settings keyboard set composer.submitSecondary <shortcut|disabled>`.
 - Git changes above the composer, the Commit button (off by default) and the
   pull request above the composer are plugin settings:
   `bb plugin config bb--git set showGitChanges false`,
@@ -271,6 +272,12 @@ on desktop and `Control+Shift+[` / `Control+Shift+]` on the web.
 `thread.rename`, `thread.archive`, `thread.markRead`, and `thread.pin` start
 unbound and act on the focused pane's open thread; Mark read and Pin toggle
 like the matching thread menu item.
+
+`composer.submitSecondary` (`Mod+Enter`, where `Mod` is Command or Control on
+every platform) runs the composer's second send action: queue when Enter
+steers, steer when Enter queues. It works only while a composer has focus.
+After rebinding it (for example to `Alt+Enter`) or disabling it, the old chord
+sends like Enter.
 
 An open question card binds `question.select.1`–`9` (`1`–`9`),
 `question.submit` (`Mod+Enter`: Next, or Submit on the last question),

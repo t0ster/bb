@@ -68,7 +68,9 @@ Original }`. `experimental_fullFileContents` is either
   `showError`). `input.submission.enter` and `.modifier` are the box's
   actions: `kind` (`send`, `queue` or `steer`), `requiresInput`,
   `shortcut`, and `run()`; gate each on `requiresInput` and your own
-  upload and voice state. `input.compact` (`when: "always" | "narrow"`,
+  upload and voice state. `.modifier` follows the user's rebindable
+  "Secondary send" shortcut: test keys with `modifier.matchesKey(event)`
+  rather than checking modifiers, and its `shortcut` is null when unbound. `input.compact` (`when: "always" | "narrow"`,
   `placeholder`) says when to show a one-line form; report the form you
   show in `editor.state.layout`. Pass your menu element and open state to
   `experimental_ComposerRoot` (`menuRef`, `menuOpen`). Mentions, attachments and history entries

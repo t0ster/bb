@@ -131,7 +131,6 @@ import {
   COMPOSER_EDITOR_AVAILABLE_HEIGHT_PROPERTY,
   ComposerEditorSlot,
 } from "./ComposerEditorSlot";
-import { isModifierSubmitKeyEvent } from "./modifier-submit-key";
 import { composerSubmittingBlockedReason } from "./composer-submit-gate";
 
 import { ComposerSendMenu } from "./ComposerSendMenu";
@@ -1059,6 +1058,8 @@ export function PromptBoxInternal({
   } = submission;
   const onSubmit = primarySubmitAction.run;
   const onModifierSubmit = modifierSubmitAction?.run;
+  const modifierShortcut = modifierSubmitAction?.shortcut ?? null;
+  const modifierAriaKeyshortcuts = modifierShortcut?.ariaKeyshortcuts;
   const {
     items: attachments = [],
     pendingUploads,
@@ -1734,11 +1735,8 @@ export function PromptBoxInternal({
         attributes: {
           "aria-label": effectivePlaceholder,
           "data-placeholder": effectivePlaceholder,
-          ...(modifierSubmitAction
-            ? {
-                "aria-keyshortcuts":
-                  modifierSubmitAction.shortcut.ariaKeyshortcuts,
-              }
+          ...(modifierShortcut
+            ? { "aria-keyshortcuts": modifierShortcut.ariaKeyshortcuts }
             : {}),
           autocomplete: "off",
           class: cn(
@@ -2102,8 +2100,21 @@ export function PromptBoxInternal({
     editor.view.dom.setAttribute("aria-label", effectivePlaceholder);
     editor.view.dom.setAttribute("data-placeholder", effectivePlaceholder);
     editor.view.dom.setAttribute("enterkeyhint", editorEnterKeyHint);
+    if (modifierAriaKeyshortcuts === undefined) {
+      editor.view.dom.removeAttribute("aria-keyshortcuts");
+    } else {
+      editor.view.dom.setAttribute(
+        "aria-keyshortcuts",
+        modifierAriaKeyshortcuts,
+      );
+    }
     editor.view.dispatch(editor.state.tr);
-  }, [editor, editorEnterKeyHint, effectivePlaceholder]);
+  }, [
+    editor,
+    editorEnterKeyHint,
+    effectivePlaceholder,
+    modifierAriaKeyshortcuts,
+  ]);
 
   useEffect(() => {
     if (!editor) return;
@@ -2815,15 +2826,16 @@ export function PromptBoxInternal({
   );
 
   const canSubmitActionAfterVoice = (
-    action: ExperimentalComposerAction | null,
+    action: Pick<ExperimentalComposerAction, "requiresInput"> | null,
   ) =>
     action !== null &&
     (!action.requiresInput || hasSubmittableInput) &&
     !isAttaching &&
     !isSubmitting &&
     !submitDisabled;
-  const canSubmitAction = (action: ExperimentalComposerAction | null) =>
-    canSubmitActionAfterVoice(action) && !showVoiceActionGroup;
+  const canSubmitAction = (
+    action: Pick<ExperimentalComposerAction, "requiresInput"> | null,
+  ) => canSubmitActionAfterVoice(action) && !showVoiceActionGroup;
   const canSubmitVoiceTranscript =
     hasSubmittableInput && canSubmitActionAfterVoice(primarySubmitAction);
   const canPrimarySubmit = canSubmitAction(primarySubmitAction);
@@ -3240,7 +3252,7 @@ export function PromptBoxInternal({
         }
       }
 
-      if (isModifierSubmitKeyEvent(event) && onModifierSubmit) {
+      if (modifierSubmitAction?.matchesKey(event)) {
         event.preventDefault();
         submitModifierPrompt();
         return true;
@@ -3294,8 +3306,8 @@ export function PromptBoxInternal({
       handleComposerMenuKeyDown,
       history,
       isPointerCoarse,
+      modifierSubmitAction,
       onEscape,
-      onModifierSubmit,
       postCompositionKeyDownEvents,
       resetHistorySession,
       selectedIndex,

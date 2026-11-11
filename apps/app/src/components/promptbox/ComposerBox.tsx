@@ -39,7 +39,7 @@ import {
 } from "@bb/client-core";
 import { isProjectAttachmentPath } from "@/lib/file-content-urls";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
-import type { PromptTextMention } from "@bb/domain";
+import type { AppShortcut, PromptTextMention } from "@bb/domain";
 import { composerMentionResource } from "./mentions/prompt-mention-pill";
 import {
   PluginSlotMount,
@@ -125,8 +125,9 @@ import type { CommandSuggestionSource } from "@/hooks/useCommandSuggestions";
 import type { PromptMentionSource } from "@/hooks/usePromptMentions";
 import { ComposerMaxHeightContext } from "./composer-max-height";
 import {
-  modifierSubmitShortcutAria,
-  modifierSubmitShortcutLabel,
+  matchesModifierSubmitShortcut,
+  presentModifierSubmitShortcut,
+  useModifierSubmitShortcut,
 } from "./modifier-submit-shortcut";
 
 interface TypeaheadMentionConfig {
@@ -226,6 +227,7 @@ const ENTER_SHORTCUT = { label: "Enter", ariaKeyshortcuts: "Enter" };
 function composerSubmission(
   submission: PromptBoxSubmissionConfig | undefined,
   onSubmit: ComposerBoxProps["onSubmit"],
+  modifierShortcut: AppShortcut | null,
 ): ExperimentalComposerSubmission {
   const {
     onModifierSubmit,
@@ -262,10 +264,9 @@ function composerSubmission(
         ? null
         : {
             ...modifier,
-            shortcut: {
-              label: modifierSubmitShortcutLabel(),
-              ariaKeyshortcuts: modifierSubmitShortcutAria(),
-            },
+            shortcut: presentModifierSubmitShortcut(modifierShortcut),
+            matchesKey: (event) =>
+              matchesModifierSubmitShortcut(event, modifierShortcut),
           },
     showModifierInMenu: showModifierSubmitAction,
   };
@@ -497,6 +498,7 @@ function useComposerRendererHostApi({
   const key = boxHost.textEffectKey;
   const inputLocked = useComposerInputLock(key);
   const focusComposerShortcut = useAppCommandShortcut("composer.focus");
+  const modifierShortcut = useModifierSubmitShortcut();
   const dispatchAppCommandKey = useAppCommandKeyDispatch();
   const openAttachment = useAttachmentOpener();
   const threadTitleResources = useThreadTitleMentionResources();
@@ -549,7 +551,7 @@ function useComposerRendererHostApi({
     input: {
       ...input,
       ...(maxHeight === undefined ? {} : { maxHeight }),
-      submission: composerSubmission(submission, onSubmit),
+      submission: composerSubmission(submission, onSubmit, modifierShortcut),
       voice: composerVoice(voice),
       mentionTriggers,
       commandTriggers: typeahead.command.source.skillsTriggers.filter(

@@ -165,6 +165,7 @@ Check imports here, behavior in the Plugin Guide, and signatures in the installe
 - `PluginCommandShortcut`
 - `PluginCommandRegistration`
 - `ExperimentalComposerAction`
+- `ExperimentalComposerModifierAction`
 - `ExperimentalComposerAttachments`
 - `ExperimentalComposerClipboard`
 - `ExperimentalComposerCommandRegistration`

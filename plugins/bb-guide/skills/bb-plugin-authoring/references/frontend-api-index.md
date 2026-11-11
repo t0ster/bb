@@ -327,6 +327,7 @@ Read the installed SDK declarations for the exact current signatures.
 - `ExperimentalComposerRegistration`
 - `ExperimentalComposerSubmission`
 - `ExperimentalComposerAction`
+- `ExperimentalComposerModifierAction`
 - `ExperimentalComposerSubmitOptions`
 - `ExperimentalComposerSelection`
 - `ExperimentalComposerCommandTrigger`
