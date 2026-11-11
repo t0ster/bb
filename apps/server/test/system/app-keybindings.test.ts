@@ -348,6 +348,30 @@ describe("app keybindings", () => {
     ["web-mac", "Ctrl+1", [], "thread.jump.1"],
     ["web-other", "Ctrl+1", [], null],
     ["web-other", "Ctrl+Shift+1", [], "thread.jump.1"],
+    [
+      "desktop-mac",
+      "Mod+Enter",
+      ["promptAvailable", "editableFocus"],
+      "composer.submitSecondary",
+    ],
+    [
+      "web-other",
+      "Mod+Enter",
+      ["promptAvailable", "editableFocus"],
+      "composer.submitSecondary",
+    ],
+    [
+      "desktop-other",
+      "Mod+Enter",
+      ["promptAvailable", "editableFocus", "questionOpen", "questionFocus"],
+      "question.submit",
+    ],
+    [
+      "web-mac",
+      "Mod+Enter",
+      ["promptAvailable", "questionOpen"],
+      "question.submit",
+    ],
   ] as const)(
     "on %s, %s with %j resolves to %s by default",
     (clientName, chord, extraContexts, expected) => {

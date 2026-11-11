@@ -24,7 +24,10 @@ import type {
 import type { ComposerView, PluginComposerScope } from "@get-bb/plugin-sdk";
 import type { ComposerSubmitExtras } from "@get-bb/plugin-sdk/internal/composer-handle";
 import type { ComposerTextEffectSource } from "@/lib/composer-text-effects";
-import { modifierSubmitShortcutLabel } from "./modifier-submit-shortcut";
+import {
+  presentModifierSubmitShortcut,
+  useModifierSubmitShortcut,
+} from "./modifier-submit-shortcut";
 import { isKeyboardFocusTarget } from "@/components/layout/useMobileVisualViewportHeight";
 import { ComposerBannersSlot } from "@/components/plugin/PluginComposerBanners";
 import {
@@ -615,8 +618,13 @@ function FollowUpPromptBoxWithComposer({
     steerOnPrimarySubmit &&
     (composer.threadRuntimeDisplayStatus === "provisioning" ||
       composer.threadRuntimeDisplayStatus === "starting");
+  const modifierShortcut = useModifierSubmitShortcut();
+  const modifierShortcutLabel =
+    presentModifierSubmitShortcut(modifierShortcut)?.label;
   const modifierSubmitHint = (action: "queue" | "steer"): string =>
-    onModifierSubmit ? `, ${modifierSubmitShortcutLabel()} to ${action}` : "";
+    onModifierSubmit && modifierShortcutLabel !== undefined
+      ? `, ${modifierShortcutLabel} to ${action}`
+      : "";
   const executionControlsDisabled =
     (executionReadOnly ?? false) || hasPendingInteraction;
   const executionControls = useMemo(

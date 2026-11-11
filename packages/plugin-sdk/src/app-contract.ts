@@ -2927,6 +2927,23 @@ export interface ExperimentalComposerAction {
   run(): void;
 }
 
+/**
+ * The box's second action, on the user's "Secondary send" shortcut
+ * (`composer.submitSecondary`, `Mod+Enter` by default).
+ */
+export interface ExperimentalComposerModifierAction extends Omit<
+  ExperimentalComposerAction,
+  "shortcut"
+> {
+  /** The bound key formatted for display, or null when the user unbound it. */
+  shortcut: ExperimentalShortcutPresentation | null;
+  /**
+   * Whether `event` presses the bound key; always false when unbound. Call it
+   * from the editor's key handler instead of checking modifiers yourself.
+   */
+  matchesKey(event: KeyboardEvent): boolean;
+}
+
 /** Submit-button state and actions the host computes for a composer. */
 export interface ExperimentalComposerSubmission {
   isSubmitting?: boolean;
@@ -2939,8 +2956,11 @@ export interface ExperimentalComposerSubmission {
   onStop?: () => void;
   /** What Enter (and the send button) does. */
   enter: ExperimentalComposerAction;
-  /** What modifier+Enter does, or null where the surface has one action. */
-  modifier: ExperimentalComposerAction | null;
+  /**
+   * What the "Secondary send" shortcut does, or null where the surface has
+   * one action.
+   */
+  modifier: ExperimentalComposerModifierAction | null;
   /** Offer `modifier` in the send button's menu too, not only on its shortcut. */
   showModifierInMenu: boolean;
 }

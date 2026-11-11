@@ -127,7 +127,12 @@ out by the host from the surface and the user's "Enter steers" setting: each
 says what it does now (`send`, `queue` or `steer`), whether it needs a
 draft, and its shortcut, and `run()` runs it. The box only gates and draws
 them; which key queues and which steers, and that an empty steer sends the
-next queued message, stay with the host. `input.resolveMentionLink` says what clicking a
+next queued message, stay with the host. `.modifier`
+(`ExperimentalComposerModifierAction`) runs on the user's rebindable
+`composer.submitSecondary` shortcut: its `shortcut` is null when unbound and
+`matchesKey(event)` tests a keydown against the binding, so the box keeps its
+own key order (IME, typeahead, history) without knowing the binding. Core's
+send-button title and both contract-table composers use the same binding. `input.resolveMentionLink` says what clicking a
 pill does, opening attachment mentions and tiles in bb's viewer; core's
 timeline, the thread view's attachment opener and the composer share that
 opener. `input.maxHeight` caps the box where the host has limited room (the

@@ -132,6 +132,11 @@ const composerWithoutModal = {
   none: ["modalOpen", "terminalFocus", "browserFocus"],
 } as const;
 
+const composerEditor = {
+  all: ["mainSurface", "promptAvailable", "editableFocus"],
+  none: ["terminalFocus", "browserFocus", "questionFocus"],
+} as const;
+
 const terminalWithoutModal = {
   all: ["mainSurface", "terminalFocus"],
   none: ["modalOpen"],
@@ -320,6 +325,7 @@ export const DEFAULT_APP_KEYBINDINGS: AppDefaultKeybindings = [
     { mod: true, shift: true },
     composerWithoutModal,
   ),
+  binding("composer.submitSecondary", "Enter", { mod: true }, composerEditor),
   binding(
     "modelPicker.toggle",
     "m",

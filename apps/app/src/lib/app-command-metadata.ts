@@ -280,6 +280,11 @@ export const APP_COMMAND_GROUPS: readonly AppCommandGroup[] = [
         "Focus composer",
         "Focus the active composer's input and move the caret to the end.",
       ),
+      paletteHiddenCommand(
+        "composer.submitSecondary",
+        "Secondary send (queue or steer)",
+        "In the composer, run the send action Enter does not: queue when Enter steers, steer when Enter queues.",
+      ),
       command(
         "modelPicker.toggle",
         "Toggle model picker",

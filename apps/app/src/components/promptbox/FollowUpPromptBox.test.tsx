@@ -10,6 +10,7 @@ import {
 } from "@testing-library/react";
 import { Profiler, startTransition, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { AppShortcut } from "@bb/domain";
 import { AppCommandProvider } from "@/components/commands/AppCommandProvider";
 import {
   resetPluginSlotStoreForTest,
@@ -31,6 +32,7 @@ const mocks = vi.hoisted(() => {
     scrollToBottom: vi.fn(),
     permissionModePicker: vi.fn(),
     voiceState: "idle" as "idle" | "recording" | "transcribing" | "error",
+    secondarySubmitShortcut: null as AppShortcut | null,
   };
   return Object.assign(values, {});
 });
@@ -74,6 +76,19 @@ vi.mock("@/hooks/queries/system-queries", () => ({
             none: [],
           },
         },
+        ...(mocks.secondarySubmitShortcut === null
+          ? []
+          : [
+              {
+                command: "composer.submitSecondary",
+                desktopOnly: false,
+                shortcut: mocks.secondarySubmitShortcut,
+                when: {
+                  all: ["mainSurface", "promptAvailable", "editableFocus"],
+                  none: [],
+                },
+              },
+            ]),
       ],
     },
   }),
@@ -339,6 +354,7 @@ beforeEach(() => {
   mocks.isCompactViewport = false;
   mocks.isPointerCoarse = false;
   mocks.voiceState = "idle";
+  mocks.secondarySubmitShortcut = null;
   resizeObserverCallback = null;
   vi.stubGlobal(
     "ResizeObserver",
@@ -917,6 +933,47 @@ describe("FollowUpPromptBox", () => {
         }
         props.composer.steerActiveThreadOnEnter = setting;
         render(<FollowUpPromptBox {...props} />);
+
+        expect(screen.getByText("Modifier submit").getAttribute("title")).toBe(
+          title,
+        );
+      } finally {
+        platformMock.mockRestore();
+      }
+    },
+  );
+
+  it.each([
+    {
+      binding: "Alt+Enter",
+      shortcut: {
+        key: "Enter",
+        mod: false,
+        meta: false,
+        control: false,
+        alt: true,
+        shift: false,
+      },
+      title: "Queue follow-up (Enter), Alt + Enter to steer",
+    },
+    { binding: "disabled", shortcut: null, title: "Queue follow-up (Enter)" },
+  ])(
+    "shows the user's secondary send binding in the submit title ($binding)",
+    ({ shortcut, title }) => {
+      const platformMock = vi
+        .spyOn(navigator, "platform", "get")
+        .mockReturnValue("Win32");
+      try {
+        mocks.secondarySubmitShortcut = shortcut;
+        const props = createFollowUpPromptBoxProps({
+          kind: "queue",
+          onStop: vi.fn(),
+        });
+        render(
+          <AppCommandProvider>
+            <FollowUpPromptBox {...props} />
+          </AppCommandProvider>,
+        );
 
         expect(screen.getByText("Modifier submit").getAttribute("title")).toBe(
           title,

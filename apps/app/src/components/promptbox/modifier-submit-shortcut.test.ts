@@ -1,29 +1,96 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { AppShortcut } from "@bb/domain";
 import {
-  modifierSubmitShortcutAria,
-  modifierSubmitShortcutLabel,
+  matchesModifierSubmitShortcut,
+  presentModifierSubmitShortcut,
 } from "./modifier-submit-shortcut";
 
-function mockPlatform(platform: string): () => void {
-  const originalNavigator = globalThis.navigator;
-  vi.stubGlobal("navigator", { ...originalNavigator, platform });
-  return () => vi.unstubAllGlobals();
+const NO_MODIFIERS = {
+  mod: false,
+  meta: false,
+  control: false,
+  alt: false,
+  shift: false,
+};
+const MOD_ENTER: AppShortcut = { ...NO_MODIFIERS, key: "Enter", mod: true };
+
+function enter(modifiers: Partial<KeyboardEventInit> = {}) {
+  return {
+    key: "Enter",
+    code: "Enter",
+    metaKey: false,
+    ctrlKey: false,
+    altKey: false,
+    shiftKey: false,
+    ...modifiers,
+  };
+}
+
+function mockPlatform(platform: string) {
+  vi.spyOn(navigator, "platform", "get").mockReturnValue(platform);
 }
 
 describe("modifier submit shortcut", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
-  it("presents the shortcut as Control on Windows and Linux", () => {
-    mockPlatform("Linux x86_64");
-    expect(modifierSubmitShortcutLabel()).toBe("Ctrl + Enter");
-    expect(modifierSubmitShortcutAria()).toBe("Control+Enter");
+  it.each([
+    ["Linux x86_64", "Ctrl + Enter", "Control+Enter"],
+    ["MacIntel", "⌘ Enter", "Meta+Enter"],
+  ])("presents Mod+Enter on %s", (platform, label, ariaKeyshortcuts) => {
+    mockPlatform(platform);
+    expect(presentModifierSubmitShortcut(MOD_ENTER)).toEqual({
+      label,
+      ariaKeyshortcuts,
+    });
   });
 
-  it("presents the shortcut as Command on Mac", () => {
+  it("presents nothing for an unbound shortcut", () => {
+    expect(presentModifierSubmitShortcut(null)).toBeNull();
+  });
+
+  it.each(["Linux x86_64", "MacIntel"])(
+    "accepts Control or Command for Mod on %s, without extra modifiers",
+    (platform) => {
+      mockPlatform(platform);
+      expect(
+        matchesModifierSubmitShortcut(enter({ ctrlKey: true }), MOD_ENTER),
+      ).toBe(true);
+      expect(
+        matchesModifierSubmitShortcut(enter({ metaKey: true }), MOD_ENTER),
+      ).toBe(true);
+      expect(matchesModifierSubmitShortcut(enter(), MOD_ENTER)).toBe(false);
+      expect(
+        matchesModifierSubmitShortcut(
+          enter({ ctrlKey: true, shiftKey: true }),
+          MOD_ENTER,
+        ),
+      ).toBe(false);
+      expect(
+        matchesModifierSubmitShortcut(
+          enter({ metaKey: true, altKey: true }),
+          MOD_ENTER,
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it("matches a rebound shortcut exactly and nothing when unbound", () => {
     mockPlatform("MacIntel");
-    expect(modifierSubmitShortcutLabel()).toBe("⌘ Enter");
-    expect(modifierSubmitShortcutAria()).toBe("Meta+Enter");
+    const control: AppShortcut = {
+      ...NO_MODIFIERS,
+      key: "Enter",
+      control: true,
+    };
+    expect(
+      matchesModifierSubmitShortcut(enter({ ctrlKey: true }), control),
+    ).toBe(true);
+    expect(
+      matchesModifierSubmitShortcut(enter({ metaKey: true }), control),
+    ).toBe(false);
+    expect(matchesModifierSubmitShortcut(enter({ ctrlKey: true }), null)).toBe(
+      false,
+    );
   });
 });

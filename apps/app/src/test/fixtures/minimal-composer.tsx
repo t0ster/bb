@@ -133,10 +133,14 @@ function MinimalComposer() {
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (renderer.dispatchAppCommandKey(event.nativeEvent)) return;
+    if (submission.modifier?.matchesKey(event.nativeEvent)) {
+      event.preventDefault();
+      submission.modifier.run();
+      return;
+    }
     if (event.key !== "Enter" || event.shiftKey) return;
     event.preventDefault();
-    if (event.metaKey || event.ctrlKey) submission.modifier?.run();
-    else submission.enter.run();
+    submission.enter.run();
   };
 
   return (
